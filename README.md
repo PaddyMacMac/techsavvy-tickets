@@ -17,7 +17,7 @@ A job-request ticketing app for Tech Savvy Solutions Ltd. Clients can submit req
 
 ## Preview
 
-![Tech Savvy Tickets](public/images/Screenshot.png)
+![Tech Savvy Tickets](frontend/public/images/Screenshot.png)
 
 ## Live demo
 
