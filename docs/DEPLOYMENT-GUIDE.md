@@ -34,7 +34,14 @@ Rerunning the launcher reconciles resources in place; it does not tear down the 
 3. Open the website address printed by the launcher and sign in with the Azure account assigned the **Engineer** role.
 4. Submit a test request and confirm it appears in the ticket list.
 
-For an interview portfolio link, append `/demo` to the website address. Visitors can sign in with either demo account shown on that page. The demo uses fictional data in the browser; edits are temporary and reset when the visitor signs out, leaves, or refreshes. The demo login only selects the role for this fictional data; it does not call the Azure API or protect sensitive information. The full app at the root URL still uses Entra sign-in.
+For an interview portfolio link, append `/demo` to the website address printed by the launcher. The current live link is [Tech Savvy Tickets demo](https://calm-cliff-05a01740f.3.azurestaticapps.net/demo). The demo accounts are:
+
+| View | Email | Password |
+|---|---|---|
+| Engineer | `engineer@tss.local` | `Engineer123!` |
+| Client | `client@acme.local` | `Client123!` |
+
+The demo login runs in the browser and only selects a role for fictional sample data. Engineers can view and update the team queue; clients see their sample requests and can submit a sample request. The demo does not sign in to Entra, call the Azure API, or use the Azure database. Changes reset on sign-out, leaving the page, or refresh. These public credentials are not secure accounts; never use them with real data or reuse their passwords. The full app at the root URL still uses Entra sign-in and assigned app roles. If the Static Web App is recreated and its hostname changes, update the live link in this guide and the root README.
 
 To give another person access later, use Microsoft Entra ID → **Enterprise applications** → **Tech Savvy Tickets** → **Users and groups**, and assign **Engineer** or **Client**. Invite external users to the tenant first if needed.
 

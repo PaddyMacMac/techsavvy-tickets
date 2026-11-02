@@ -7,3 +7,5 @@ The schema itself is owned by Flyway: `backend/src/main/resources/db/migration` 
 | `local/` | Runs once when the local Docker database is first created (enables the `vector` extension). |
 | `seed/`  | Demo tickets for local work. Run **after** the backend has started once (so the tables exist): `docker compose exec db psql -U tickets -d tickets -f /seed/dev-seed.sql` |
 | `azure/` | Optional hardening for the Azure database: a least-privilege app login, and enabling pgvector. |
+
+The public `/demo` portfolio page uses separate fictional tickets held in browser memory. It does not read this seed file or write to the Azure database.
