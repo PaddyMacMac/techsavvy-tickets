@@ -1,24 +1,32 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router'
 import { AuthProvider } from './auth/AuthContext'
 import { RequireAuth } from './auth/RequireAuth'
+import { DemoPage } from './features/demo/DemoPage'
 import { LoginPage } from './features/login/LoginPage'
 import { TicketsPage } from './features/tickets/TicketsPage'
 
-export const App = () => (
+const AuthenticatedRoutes = () => (
   <AuthProvider>
-    <BrowserRouter>
-      <Routes>
-        <Route path="/login" element={<LoginPage />} />
-        <Route
-          path="/"
-          element={
-            <RequireAuth>
-              <TicketsPage />
-            </RequireAuth>
-          }
-        />
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    </BrowserRouter>
+    <Routes>
+      <Route path="/login" element={<LoginPage />} />
+      <Route
+        path="/"
+        element={
+          <RequireAuth>
+            <TicketsPage />
+          </RequireAuth>
+        }
+      />
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
   </AuthProvider>
+)
+
+export const App = () => (
+  <BrowserRouter>
+    <Routes>
+      <Route path="/demo" element={<DemoPage />} />
+      <Route path="/*" element={<AuthenticatedRoutes />} />
+    </Routes>
+  </BrowserRouter>
 )

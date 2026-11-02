@@ -34,6 +34,8 @@ Rerunning the launcher reconciles resources in place; it does not tear down the 
 3. Open the website address printed by the launcher and sign in with the Azure account assigned the **Engineer** role.
 4. Submit a test request and confirm it appears in the ticket list.
 
+For an interview portfolio link, append `/demo` to the website address. Visitors can sign in with either demo account shown on that page. The demo uses fictional data in the browser; edits are temporary and reset when the visitor signs out, leaves, or refreshes. The demo login only selects the role for this fictional data; it does not call the Azure API or protect sensitive information. The full app at the root URL still uses Entra sign-in.
+
 To give another person access later, use Microsoft Entra ID → **Enterprise applications** → **Tech Savvy Tickets** → **Users and groups**, and assign **Engineer** or **Client**. Invite external users to the tenant first if needed.
 
 ## Normal development

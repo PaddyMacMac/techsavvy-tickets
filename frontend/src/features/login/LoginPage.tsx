@@ -1,4 +1,4 @@
-import { Navigate } from 'react-router'
+import { Link, Navigate } from 'react-router'
 import { useAuth } from '../../auth/useAuth'
 import { Button } from '../../components/Button'
 import { FeedbackMessage } from '../../components/FeedbackMessage'
@@ -45,11 +45,19 @@ export const LoginPage = () => {
             </FeedbackMessage>
           )}
           {kind === 'dev' ? (
-            <DevLoginForm onSignIn={signIn} />
+            <>
+              <DevLoginForm onSignIn={signIn} />
+              <Link to="/demo" className="rounded-full border border-rule px-5 py-3 text-center font-bold text-mill hover:border-sky hover:bg-[#f0faff]">
+                Try the demo account login
+              </Link>
+            </>
           ) : (
             <>
               <Button onClick={() => void signIn()}>Sign in with Microsoft</Button>
               <p className="text-sm text-ink-muted">Use the work account Tech Savvy set up for you.</p>
+              <Link to="/demo" className="rounded-full border border-rule px-5 py-3 text-center font-bold text-mill hover:border-sky hover:bg-[#f0faff]">
+                Try the demo account login
+              </Link>
             </>
           )}
         </div>

@@ -21,7 +21,7 @@ A job-request ticketing app for Tech Savvy Solutions Ltd. Clients can submit req
 
 ## Azure deployment
 
-The Azure website address is generated when the resources are provisioned. The launcher prints the address; see the [deployment guide](docs/DEPLOYMENT-GUIDE.md) for the one-run setup and post-deployment checks.
+The Azure website address is generated when the resources are provisioned. The launcher prints the address; see the [deployment guide](docs/DEPLOYMENT-GUIDE.md) for the one-run setup and post-deployment checks. Add `/demo` to that address to open the portfolio demo. It has separate Engineer and Client demo logins and fictional browser-only data; it does not access the Azure API. The full application at the site root remains protected by Microsoft Entra ID.
 
 ## Run locally
 
@@ -53,7 +53,7 @@ Open [http://localhost:5173](http://localhost:5173). Sign in with one of these l
 | Engineer | `engineer@tss.local` | `Engineer123!` |
 | Client | `client@acme.local` | `Client123!` |
 
-These demo accounts are for local development only.
+These credentials work in local development and the public portfolio demo. On `/demo`, the login only selects a role for the fictional browser-only data; it does not authenticate to Azure or protect sensitive information. The full app at the website root still requires Microsoft Entra sign-in.
 
 ## Run tests
 
