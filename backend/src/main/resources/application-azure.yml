@@ -1,0 +1,11 @@
+# Every value comes from environment variables set on the Azure Container App (see docs/DEPLOYMENT-GUIDE.md).
+spring:
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
+
+app:
+  entra:
+    tenant-id: ${ENTRA_TENANT_ID}
+    client-id: ${ENTRA_CLIENT_ID}

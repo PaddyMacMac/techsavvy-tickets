@@ -1,0 +1,24 @@
+# Local PostgreSQL (with the pgvector extension available for future Spring AI work).
+#   Start:  docker compose up -d
+#   Stop:   docker compose down        (add -v to also delete the data)
+services:
+  db:
+    image: pgvector/pgvector:pg17
+    environment:
+      POSTGRES_DB: tickets
+      POSTGRES_USER: tickets
+      POSTGRES_PASSWORD: tickets
+    ports:
+      - "5432:5432"
+    volumes:
+      - tickets-db:/var/lib/postgresql/data
+      - ./dbscripts/local:/docker-entrypoint-initdb.d:ro
+      - ./dbscripts/seed:/seed:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tickets -d tickets"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  tickets-db:

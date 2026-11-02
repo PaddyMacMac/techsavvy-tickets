@@ -1,0 +1,98 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Atkinson Hyperlegible Next", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-display: "DM Serif Display", Georgia, serif;
+
+  --color-mill: #0b2633;
+  --color-brick: #b83c32;
+  --color-chalk: #f4f8fa;
+  --color-rule: #d9e5eb;
+  --color-ink-muted: #5d7480;
+  --color-moss: #237457;
+  --color-amber-ink: #8b5b00;
+  --color-river: #176e9b;
+  --color-sky: #49b8e8;
+}
+
+* { box-sizing: border-box; }
+
+html, body, #root { margin: 0; padding: 0; border: 0; }
+html { min-width: 320px; background: #f4f8fa; }
+
+body {
+  @apply bg-chalk text-mill antialiased;
+  min-height: 100vh;
+  font-feature-settings: "ss01" on;
+}
+
+button, input, select, textarea { font: inherit; }
+
+button, a, select, input, textarea { -webkit-tap-highlight-color: transparent; }
+
+::selection { background: #bcecff; color: #0b2633; }
+
+:focus-visible { outline-color: #49b8e8 !important; }
+
+table tbody tr { transition: background-color 140ms ease; }
+table tbody tr:hover { background-color: #f7fbfd; }
+
+.portal-hero-splash {
+  background-image: linear-gradient(90deg, rgba(7, 32, 45, 0.94) 0%, rgba(7, 32, 45, 0.83) 52%, rgba(7, 32, 45, 0.42) 100%), url("/images/portal-hero.webp");
+  background-position: center, 62% 48%;
+  background-size: cover;
+}
+
+.login-screen {
+  background-image: linear-gradient(90deg, rgba(7, 32, 45, 0.9) 0%, rgba(7, 32, 45, 0.78) 48%, rgba(7, 32, 45, 0.58) 100%), url("/images/portal-hero.webp");
+  background-position: center, 56% center;
+  background-size: cover;
+}
+
+@media (min-width: 1024px) {
+  .login-screen { height: 100dvh; min-height: 0; overflow: hidden; }
+  .login-hero-panel { min-height: 0; height: 100%; }
+  .login-form-panel { min-height: 0; height: 100%; }
+}
+
+@media (min-width: 1280px) and (min-height: 620px) {
+  .dashboard-main {
+    min-height: 100dvh;
+    gap: 1.25rem;
+    padding-block: 0.75rem;
+  }
+  .dashboard-left { gap: 0.75rem; }
+  .dashboard-hero { min-height: 0; padding-block: 1.1rem; padding-inline: 1.75rem; }
+  .dashboard-hero-brand { margin-bottom: 0.4rem; }
+  .dashboard-hero-brand img { height: 2.45rem; }
+  .dashboard-hero h1 { font-size: clamp(2.25rem, 5vh, 3.15rem); line-height: 0.98; }
+  .dashboard-hero > p:first-of-type { margin-bottom: 0.4rem; font-size: 0.65rem; }
+  .dashboard-hero > p:last-child { margin-top: 0.5rem; font-size: 0.875rem; line-height: 1.35rem; }
+  .dashboard-requests { gap: 0.65rem; }
+  .dashboard-requests h2 { font-size: 1.5rem; line-height: 1.8rem; }
+  .dashboard-requests [aria-label="Summary"] { gap: 0.45rem; padding: 0.85rem 1.1rem; border-radius: 1.25rem; }
+  .dashboard-requests [aria-label="Summary"] > p { font-size: 0.9rem; line-height: 1.25rem; }
+  .dashboard-requests [aria-label="Summary"] dl { gap: 0.4rem 1.1rem; padding-top: 0.45rem; }
+  .dashboard-requests [aria-label="Summary"] dl dt { font-size: 0.7rem; }
+  .dashboard-requests [aria-label="Summary"] dl dd { font-size: 1.25rem; }
+  .dashboard-requests [role="group"] { gap: 0.35rem; }
+  .dashboard-requests [role="group"] button { padding: 0.35rem 0.7rem; font-size: 0.75rem; }
+  .ticket-results th, .ticket-results td { padding: 0.65rem 0.85rem; }
+  .dashboard-form-panel { position: static; padding: 1.05rem; }
+  .dashboard-form-panel form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.5rem 0.7rem; }
+  .dashboard-form-panel form > div:first-child,
+  .dashboard-form-panel form > div:has(input[name="title"]),
+  .dashboard-form-panel form > div:has(textarea[name="description"]),
+  .dashboard-form-panel form > p,
+  .dashboard-form-panel form > button { grid-column: 1 / -1; }
+  .dashboard-form-panel form > div:first-child { padding-bottom: 0.55rem; }
+  .dashboard-form-panel form > div:first-child h2 { font-size: 1.55rem; }
+  .dashboard-form-panel label { font-size: 0.875rem; }
+  .dashboard-form-panel input, .dashboard-form-panel select, .dashboard-form-panel textarea { padding-block: 0.42rem; font-size: 0.875rem; }
+  .dashboard-form-panel textarea { height: 3.8rem; min-height: 3.8rem; }
+  .dashboard-form-panel button[type="submit"] { padding-block: 0.55rem; }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  button, a, input, select, textarea { transition: color 150ms ease, background-color 150ms ease, border-color 150ms ease, box-shadow 150ms ease; }
+}

@@ -1,0 +1,14 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Backend (local)" type="Application" factoryName="Application">
+    <option name="MAIN_CLASS_NAME" value="uk.co.techsavvysolutions.tickets.TicketsApplication" />
+    <module name="tickets-api" />
+    <option name="VM_PARAMETERS" value="--enable-preview" />
+    <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/backend" />
+    <envs>
+      <env name="SPRING_PROFILES_ACTIVE" value="local" />
+    </envs>
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

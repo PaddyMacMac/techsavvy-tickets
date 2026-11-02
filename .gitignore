@@ -1,0 +1,12 @@
+# Java / Maven
+target/
+*.class
+# Node
+node_modules/
+dist/
+.env.local
+# IntelliJ (the shared run configurations in .run/ ARE committed)
+.idea/
+*.iml
+# Local secrets written by infra scripts
+*.secrets.env

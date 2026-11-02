@@ -1,0 +1,33 @@
+# Settings shared by every profile. Profile files add the database and login settings:
+#   local  -> application-local.yml  (docker compose database + built-in dev login)
+#   azure  -> application-azure.yml  (Azure PostgreSQL + Microsoft Entra ID login)
+spring:
+  application:
+    name: tickets-api
+  threads:
+    virtual:
+      enabled: true          # Tomcat and @Async run on virtual threads
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate     # Flyway owns the schema; Hibernate only checks it matches
+  flyway:
+    locations: classpath:db/migration
+
+server:
+  shutdown: graceful
+  forward-headers-strategy: framework   # Azure Container Apps terminates TLS in front of us
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      probes:
+        enabled: true
+
+app:
+  cors:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:5173}

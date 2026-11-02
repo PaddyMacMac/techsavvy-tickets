@@ -1,0 +1,24 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/tickets
+    username: tickets
+    password: tickets
+
+logging:
+  level:
+    uk.co.techsavvysolutions: DEBUG
+
+app:
+  dev:
+    # LOCAL ONLY. Lets you sign in without an Azure tenant. Never enable the "local" profile in Azure.
+    jwt-secret: local-dev-only-secret-at-least-32-bytes-long!
+    token-ttl: 8h
+    users:
+      - email: engineer@tss.local
+        password: "{noop}Engineer123!"
+        name: Demo Engineer
+        roles: [ENGINEER]
+      - email: client@acme.local
+        password: "{noop}Client123!"
+        name: Demo Client
+        roles: [CLIENT]
