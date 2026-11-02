@@ -8,5 +8,6 @@ dist/
 # IntelliJ (the shared run configurations in .run/ ARE committed)
 .idea/
 *.iml
-# Local secrets written by infra scripts
-*.secrets.env
+# Personal Azure notes may contain resource details or credentials
+/infra/azure-notes.txt
+/infra/azure_notes.txt

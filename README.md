@@ -19,9 +19,9 @@ A job-request ticketing app for Tech Savvy Solutions Ltd. Clients can submit req
 
 ![Tech Savvy Tickets](frontend/public/images/Screenshot.png)
 
-## Live demo
+## Azure deployment
 
-[View Tech Savvy Tickets](https://paddymacmac.github.io/techsavvy-tickets/)
+The Azure website address is generated when the resources are provisioned. The launcher prints the address; see the [deployment guide](docs/DEPLOYMENT-GUIDE.md) for the one-run setup and post-deployment checks.
 
 ## Run locally
 
@@ -76,4 +76,6 @@ The backend integration tests use Testcontainers and require Docker.
 
 ## Deployment
 
-See the [deployment guide](docs/DEPLOYMENT-GUIDE.md) for Azure setup, configuration, and deployment instructions.
+With the project and workflow files pushed to the repository's `main` branch, run `.\infra\azure-run-bicep.cmd` from IntelliJ's PowerShell terminal at the project root. One run provisions or reconciles Azure, configures Entra and GitHub Actions, and queues both deployments. It installs Azure CLI and GitHub CLI with `winget` if needed; browser sign-in may be required the first time. The launcher prints the website and API addresses. See the [deployment guide](docs/DEPLOYMENT-GUIDE.md) for verification and troubleshooting.
+
+To remove the Azure resource group, run `.\infra\azure-run-bicep.cmd -Cleanup` and confirm the prompt. This does not delete the Entra app registrations or GitHub repository settings.
