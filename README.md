@@ -15,6 +15,14 @@ A job-request ticketing app for Tech Savvy Solutions Ltd. Clients can submit req
 - **Frontend:** React 19, TypeScript, Vite, Tailwind CSS
 - **Hosting:** Azure Container Apps (API) and Azure Static Web Apps (frontend)
 
+## Preview
+
+![Tech Savvy Tickets](public/images/Screenshot1.png, public/images/Screenshot2.png)
+
+## Live demo
+
+[View Tech Savvy Tickets](https://paddymacmac.github.io/techsavvy-tickets/)
+
 ## Run locally
 
 Install JDK 25, Node.js 22, and Docker Desktop. From the project root, start the database:
