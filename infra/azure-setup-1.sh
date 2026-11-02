@@ -4,8 +4,8 @@
 set -euo pipefail
 
 ############ EDIT THESE 3 LINES ONLY ############
-SUFFIX="pn01"                              # 3-8 lowercase letters/digits, makes names globally unique
-GITHUB_REPO="YOUR-GITHUB-USERNAME/techsavvy-tickets"  # your GitHub owner/repo, exactly as in the repo URL
+SUFFIX="pmc01"                              # 3-8 lowercase letters/digits, makes names globally unique
+GITHUB_REPO="PaddyMacMac/techsavvy-tickets"  # your GitHub owner/repo, exactly as in the repo URL
 LOCATION="uksouth"                         # if you get a "location restricted" error use: westus3
 #################################################
 
