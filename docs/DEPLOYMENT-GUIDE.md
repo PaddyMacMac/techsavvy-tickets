@@ -1,6 +1,6 @@
 # Run and deploy Tech Savvy Tickets
 
-Azure provisioning and deployment use one entry point: `infra/azure-run-bicep.cmd`. The Bicep files in `infra/` are called by that launcher; do not run them individually. The old Bash setup and cleanup scripts have been removed.
+Azure provisioning and deployment use one entry point: `infra/azure-run-bicep.cmd`. The Bicep files in `infra/` are called by that launcher; do not run them individually.
 
 For a component-by-component explanation of the resources, sign-in identities, deployment flow, and demo limitations, see the [plain-English Azure walkthrough](AZURE-DEPLOYMENT-WALKTHROUGH.md).
 
