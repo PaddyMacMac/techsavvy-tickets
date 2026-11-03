@@ -8,6 +8,3 @@ dist/
 # IntelliJ (the shared run configurations in .run/ ARE committed)
 .idea/
 *.iml
-# Personal Azure notes may contain resource details or credentials
-/infra/azure-notes.txt
-/infra/azure_notes.txt
