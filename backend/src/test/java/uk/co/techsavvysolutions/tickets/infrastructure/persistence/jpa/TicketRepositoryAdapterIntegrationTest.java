@@ -104,4 +104,15 @@ class TicketRepositoryAdapterIntegrationTest {
         assertThat(tickets.countOverdueAwaitingResponse(scope, NOW.plusSeconds(120))).isEqualTo(1);
         assertThat(tickets.findNextResponseDueTicket(scope)).get().extracting("id").isEqualTo(soon.getId());
     }
+
+    @Test
+    void overdueAndNextDueQueriesRespectRequesterScope() {
+        var ownSoon = tickets.save(aTicket().requesterSubject(CLIENT.subject()).respondBy(NOW.plusSeconds(60)).build());
+        tickets.save(aTicket().requesterSubject("someone-else").respondBy(NOW.minusSeconds(60)).build());
+
+        var scope = new TicketScope.OwnTickets(CLIENT.subject());
+
+        assertThat(tickets.countOverdueAwaitingResponse(scope, NOW)).isZero();
+        assertThat(tickets.findNextResponseDueTicket(scope)).get().extracting("id").isEqualTo(ownSoon.getId());
+    }
 }

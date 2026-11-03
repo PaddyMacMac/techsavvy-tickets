@@ -1,10 +1,10 @@
 import { useCallback, useState } from 'react'
 import { useApi } from '../../api/useApi'
-import { TICKET_STATUSES, type Ticket, type TicketStatus } from '../../api/types'
+import { type Ticket, type TicketStatus } from '../../api/types'
 import { useAuth } from '../../auth/useAuth'
 import { Button } from '../../components/Button'
 import { FeedbackMessage } from '../../components/FeedbackMessage'
-import { STATUS_LABELS } from './labels'
+import { StatusFilter } from './StatusFilter'
 import { SummaryStrip } from './SummaryStrip'
 import { TicketForm } from './TicketForm'
 import { TicketTable } from './TicketTable'
@@ -62,19 +62,7 @@ export const TicketsPage = () => {
             </div>
             {state.phase === 'ready' && <SummaryStrip summary={state.summary} />}
 
-          <div role="group" aria-label="Filter by status" className="flex flex-wrap gap-2">
-            {[undefined, ...TICKET_STATUSES].map((status) => (
-              <button
-                key={status ?? 'ALL'}
-                type="button"
-                aria-pressed={filter === status}
-                onClick={() => chooseFilter(status)}
-                className="rounded-full border border-rule bg-white px-4 py-2 text-sm font-bold shadow-sm hover:border-sky hover:bg-[#f0faff] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky aria-pressed:border-sky aria-pressed:bg-sky aria-pressed:text-mill"
-              >
-                {status ? STATUS_LABELS[status] : 'Everything'}
-              </button>
-            ))}
-          </div>
+          <StatusFilter value={filter} onChange={chooseFilter} />
 
           {actionError && (
             <FeedbackMessage>

@@ -15,6 +15,7 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Repository;
 
 /** Adapter: implements the domain's repository port with Spring Data JPA. */
@@ -64,16 +65,18 @@ class TicketRepositoryAdapter implements TicketRepository {
 
     @Override
     public long countOverdueAwaitingResponse(TicketScope scope, Instant now) {
-        return ticketEntityRepository.count(TicketSpecifications.inScope(scope)
-                .and(TicketSpecifications.hasStatus(TicketStatus.OPEN))
+        return ticketEntityRepository.count(openTicketsInScope(scope)
                 .and(TicketSpecifications.respondByBefore(now)));
     }
 
     @Override
     public Optional<Ticket> findNextResponseDueTicket(TicketScope scope) {
-        var spec = TicketSpecifications.inScope(scope).and(TicketSpecifications.hasStatus(TicketStatus.OPEN));
-        return ticketEntityRepository.findAll(spec, PageRequest.of(0, 1, SOONEST_DUE)).stream()
+        return ticketEntityRepository.findAll(openTicketsInScope(scope), PageRequest.of(0, 1, SOONEST_DUE)).stream()
                 .findFirst()
                 .map(ticketEntityMapper::toDomain);
+    }
+
+    private static Specification<TicketEntity> openTicketsInScope(TicketScope scope) {
+        return TicketSpecifications.inScope(scope).and(TicketSpecifications.hasStatus(TicketStatus.OPEN));
     }
 }

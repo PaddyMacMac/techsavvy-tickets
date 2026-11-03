@@ -1,118 +1,27 @@
 import { useMemo, useState, type FormEvent } from 'react'
 import { Link } from 'react-router'
-import type { LogTicketRequest, Role, Ticket, TicketStatus, TicketSummary } from '../../api/types'
-import { TICKET_STATUSES } from '../../api/types'
+import type { LogTicketRequest, Role, Ticket, TicketStatus } from '../../api/types'
 import { Button } from '../../components/Button'
 import { FeedbackMessage } from '../../components/FeedbackMessage'
 import { TextField } from '../../components/Field'
 import { TicketForm } from '../tickets/TicketForm'
 import { TicketTable } from '../tickets/TicketTable'
-import { STATUS_LABELS } from '../tickets/labels'
+import { StatusFilter } from '../tickets/StatusFilter'
 import { SummaryStrip } from '../tickets/SummaryStrip'
+import {
+  CLIENT_EMAIL,
+  createSampleTickets,
+  dateFromNow,
+  getAllowedTransitions,
+  summarizeTickets,
+} from './demoModel'
 
-const CLIENT_EMAIL = 'client@acme.local'
 const ENGINEER_EMAIL = 'engineer@tss.local'
-const HOUR = 60 * 60 * 1000
 
 const DEMO_ACCOUNTS: { email: string; password: string; role: Role }[] = [
   { email: ENGINEER_EMAIL, password: 'Engineer123!', role: 'ENGINEER' },
   { email: CLIENT_EMAIL, password: 'Client123!', role: 'CLIENT' },
 ]
-
-const dateFromNow = (hours: number): string => new Date(Date.now() + hours * HOUR).toISOString()
-const dateFromDays = (days: number): string => {
-  const date = new Date()
-  date.setDate(date.getDate() + days)
-  return date.toISOString().slice(0, 10)
-}
-
-const nextStatuses: Record<TicketStatus, TicketStatus[]> = {
-  OPEN: ['IN_PROGRESS', 'CLOSED'],
-  IN_PROGRESS: ['OPEN', 'WAITING_ON_CLIENT', 'RESOLVED'],
-  WAITING_ON_CLIENT: ['IN_PROGRESS', 'CLOSED'],
-  RESOLVED: ['IN_PROGRESS', 'CLOSED'],
-  CLOSED: [],
-}
-
-const createSampleTickets = (): Ticket[] => {
-  const makeTicket = (
-    id: string,
-    reference: string,
-    title: string,
-    description: string,
-    category: Ticket['category'],
-    priority: Ticket['priority'],
-    status: TicketStatus,
-    companyName: string,
-    requesterName: string,
-    requesterEmail: string,
-    ageHours: number,
-    replyHours: number,
-    requiredBy: string | null = null,
-  ): Ticket => ({
-    id,
-    reference,
-    title,
-    description,
-    category,
-    priority,
-    status,
-    companyName,
-    requesterName,
-    requesterEmail,
-    requiredBy,
-    respondBy: dateFromNow(replyHours),
-    createdAt: dateFromNow(-ageHours),
-    updatedAt: dateFromNow(-ageHours),
-    allowedTransitions: nextStatuses[status],
-  })
-
-  return [
-    makeTicket(
-      'demo-1004', 'TSS-001004', 'New starter laptop for Alex',
-      'Alex starts Monday. Needs a laptop with Microsoft 365 and the accounts package.',
-      'NEW_STARTER', 'HIGH', 'OPEN', 'Acme Bury Ltd', 'Demo Client', CLIENT_EMAIL, 1, 3, dateFromDays(5),
-    ),
-    makeTicket(
-      'demo-1003', 'TSS-001003', 'Front office printer offline',
-      'The printer next to reception has not worked since this morning.',
-      'HARDWARE', 'URGENT', 'OPEN', 'Acme Bury Ltd', 'Demo Client', CLIENT_EMAIL, 2, -0.5,
-    ),
-    makeTicket(
-      'demo-1002', 'TSS-001002', 'Shared mailbox for orders',
-      'Please create orders@ and give three people access.',
-      'MICROSOFT_365', 'NORMAL', 'IN_PROGRESS', 'Acme Bury Ltd', 'Demo Client', CLIENT_EMAIL, 6, 18,
-    ),
-    makeTicket(
-      'demo-1001', 'TSS-001001', 'Office move: Bury to Ramsbottom',
-      'We move in six weeks. Need a plan for the network and phones.',
-      'OFFICE_MOVE', 'LOW', 'WAITING_ON_CLIENT', 'Lancashire Joinery', 'Demo Client', 'owner@demo.example', 20, 28, dateFromDays(42),
-    ),
-    makeTicket(
-      'demo-1000', 'TSS-001000', 'Review mailbox security settings',
-      'Check the shared mailbox permissions after the recent staff changes.',
-      'SECURITY', 'NORMAL', 'RESOLVED', 'Acme Bury Ltd', 'Demo Client', CLIENT_EMAIL, 48, 72,
-    ),
-  ]
-}
-
-const summarize = (tickets: Ticket[]): TicketSummary => {
-  const byStatus = Object.fromEntries(TICKET_STATUSES.map((status) => [
-    status,
-    tickets.filter((ticket) => ticket.status === status).length,
-  ])) as Record<TicketStatus, number>
-  const open = tickets.filter((ticket) => ticket.status === 'OPEN')
-  const now = Date.now()
-  const nextResponseDue = [...open].sort((left, right) =>
-    new Date(left.respondBy).getTime() - new Date(right.respondBy).getTime(),
-  )[0] ?? null
-
-  return {
-    byStatus,
-    awaitingResponseOverdue: open.filter((ticket) => new Date(ticket.respondBy).getTime() < now).length,
-    nextResponseDue,
-  }
-}
 
 export const DemoPage = () => {
   const [tickets, setTickets] = useState<Ticket[]>(createSampleTickets)
@@ -124,16 +33,21 @@ export const DemoPage = () => {
   const isEngineer = role === 'ENGINEER'
   const currentEmail = isEngineer ? ENGINEER_EMAIL : CLIENT_EMAIL
   const currentName = isEngineer ? 'Demo Engineer' : 'Demo Client'
-  const visibleTickets = useMemo(() => {
-    const roleTickets = isEngineer
-      ? tickets
-      : tickets.filter((ticket) => ticket.requesterEmail === CLIENT_EMAIL)
-    return filter ? roleTickets.filter((ticket) => ticket.status === filter) : roleTickets
-  }, [filter, isEngineer, tickets])
-  const roleTickets = useMemo(() => isEngineer
-    ? tickets
-    : tickets.filter((ticket) => ticket.requesterEmail === CLIENT_EMAIL), [isEngineer, tickets])
-  const summary = useMemo(() => summarize(roleTickets), [roleTickets])
+  const ticketsForCurrentRole = useMemo(
+    () =>
+      isEngineer
+        ? tickets
+        : tickets.filter((ticket) => ticket.requesterEmail === CLIENT_EMAIL),
+    [isEngineer, tickets],
+  )
+  const visibleTickets = useMemo(
+    () =>
+      filter
+        ? ticketsForCurrentRole.filter((ticket) => ticket.status === filter)
+        : ticketsForCurrentRole,
+    [filter, ticketsForCurrentRole],
+  )
+  const summary = useMemo(() => summarizeTickets(ticketsForCurrentRole), [ticketsForCurrentRole])
 
   const signInToDemo = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -169,7 +83,7 @@ export const DemoPage = () => {
       respondBy: dateFromNow(request.priority === 'URGENT' ? 1 : request.priority === 'HIGH' ? 4 : request.priority === 'LOW' ? 24 : 8),
       createdAt: now,
       updatedAt: now,
-      allowedTransitions: nextStatuses.OPEN,
+      allowedTransitions: getAllowedTransitions('OPEN'),
     }
     setNextDemoNumber((number) => number + 1)
     return ticket
@@ -178,7 +92,7 @@ export const DemoPage = () => {
   const addTicket = (ticket: Ticket) => setTickets((current) => [ticket, ...current])
   const changeStatus = (ticket: Ticket, status: TicketStatus) => {
     setTickets((current) => current.map((item) => item.id === ticket.id
-      ? { ...item, status, updatedAt: new Date().toISOString(), allowedTransitions: nextStatuses[status] }
+      ? { ...item, status, updatedAt: new Date().toISOString(), allowedTransitions: getAllowedTransitions(status) }
       : item))
   }
 
@@ -272,19 +186,7 @@ export const DemoPage = () => {
               <h2 className="mt-1 text-2xl font-extrabold sm:text-3xl">{isEngineer ? 'All sample requests' : 'Sample job requests'}</h2>
             </div>
             <SummaryStrip summary={summary} />
-            <div role="group" aria-label="Filter by status" className="flex flex-wrap gap-2">
-              {[undefined, ...TICKET_STATUSES].map((status) => (
-                <button
-                  key={status ?? 'ALL'}
-                  type="button"
-                  aria-pressed={filter === status}
-                  onClick={() => setFilter(status)}
-                  className="rounded-full border border-rule bg-white px-4 py-2 text-sm font-bold shadow-sm hover:border-sky hover:bg-[#f0faff] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky aria-pressed:border-sky aria-pressed:bg-sky aria-pressed:text-mill"
-                >
-                  {status ? STATUS_LABELS[status] : 'Everything'}
-                </button>
-              ))}
-            </div>
+            <StatusFilter value={filter} onChange={setFilter} />
             <div className="ticket-results">
               <TicketTable tickets={visibleTickets} canChangeStatus={isEngineer} onChangeStatus={changeStatus} />
             </div>
