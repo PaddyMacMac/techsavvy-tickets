@@ -38,8 +38,6 @@ The Static Web App hostname can change if the resource is deleted and recreated.
 
 The Azure website address is generated when the resources are provisioned. The launcher prints the address; see the [deployment guide](docs/DEPLOYMENT-GUIDE.md) for the one-run setup and post-deployment checks. The public demo link is in the [Live demo](#live-demo) section; the full application at the site root remains Entra-protected.
 
-For a beginner-friendly explanation of what Azure created, how requests and deployments flow through it, and how to discuss the setup in an interview, see the [Azure deployment walkthrough](docs/AZURE-DEPLOYMENT-WALKTHROUGH.md).
-
 ## Run locally
 
 Install JDK 25, Node.js 22, and Docker Desktop, and make Maven available on `PATH` (or use IntelliJ's Maven tool window to run Maven goals). From the project root, start the database:
