@@ -20,6 +20,12 @@ param postgresAdminPassword string
 @description('Optional object ID of an existing GitHub deployment service principal.')
 param githubServicePrincipalObjectId string = ''
 
+@description('Whether to create the initial API Container App.')
+param deployContainerApp bool = true
+
+@description('Hostname of the existing API Container App when it is preserved.')
+param existingApiHostname string = ''
+
 var normalizedSuffix = toLower(suffix)
 var resourceGroupName = 'rg-tss-tickets-${normalizedSuffix}'
 
@@ -40,6 +46,8 @@ module resources './azure-setup-1-resources.bicep' = {
     staticWebAppLocation: staticWebAppLocation
     postgresAdminPassword: postgresAdminPassword
     githubServicePrincipalObjectId: githubServicePrincipalObjectId
+    deployContainerApp: deployContainerApp
+    existingApiHostname: existingApiHostname
   }
 }
 

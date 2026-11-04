@@ -16,7 +16,6 @@ $templatePath = Join-Path $PSScriptRoot 'azure-setup-1.bicep'
 $apiTemplatePath = Join-Path $PSScriptRoot 'azure-setup-2.bicep'
 $githubAppName = "gh-deploy-tss-$Suffix"
 $entraAppName = 'Tech Savvy Tickets'
-$quickstartImage = 'mcr.microsoft.com/k8se/quickstart:latest'
 $secretStateDirectory = Join-Path $env:LOCALAPPDATA 'TechSavvyTickets'
 $secretStatePath = Join-Path $secretStateDirectory "postgres-$Suffix.secure"
 $appSecretStatePath = Join-Path $secretStateDirectory "postgres-app-$Suffix.secure"
@@ -353,19 +352,21 @@ if ($null -eq $federatedCredential) {
 
 $entraClientId = Ensure-EntraApplication -WebsiteUrl ''
 $postgresAdminPassword = Get-DatabasePassword
-$existingContainerImage = $quickstartImage
-$useDedicatedDatabaseUser = $false
+$containerAppExists = $false
+$existingApiHostname = ''
 $rgExists = [string](Invoke-Az -Arguments @('group', 'exists', '--name', $resourceGroupName, '--output', 'tsv') -Failure 'Could not check the Azure resource group.')
 if ($rgExists -eq 'true') {
-    $imageResult = & az containerapp show --name tickets-api --resource-group $resourceGroupName --query 'properties.template.containers[0].image' --output tsv 2>$null
-    if ($LASTEXITCODE -eq 0 -and -not [string]::IsNullOrWhiteSpace([string]$imageResult)) { $existingContainerImage = [string]$imageResult }
-    $databaseUserResult = & az containerapp show --name tickets-api --resource-group $resourceGroupName --query "properties.template.containers[0].env[?name=='DB_USER'].value | [0]" --output tsv 2>$null
-    if ($LASTEXITCODE -eq 0 -and [string]$databaseUserResult -eq 'tickets_app') { $useDedicatedDatabaseUser = $true }
+    $existingAppJson = & az containerapp show --name tickets-api --resource-group $resourceGroupName --output json 2>$null
+    if ($LASTEXITCODE -eq 0) {
+        $existingApp = ($existingAppJson -join [Environment]::NewLine) | ConvertFrom-Json
+        $containerAppExists = $true
+        $existingApiHostname = [string]$existingApp.properties.configuration.ingress.fqdn
+        if ([string]::IsNullOrWhiteSpace($existingApiHostname)) {
+            throw 'The existing API Container App does not have an ingress hostname; refusing to overwrite its configuration.'
+        }
+    }
 }
-if ($useDedicatedDatabaseUser -and -not (Test-Path -LiteralPath $appSecretStatePath)) {
-    throw "The encrypted application database password is missing at $appSecretStatePath. Restore the original Windows user state before reconciling this deployment; generating a new password here would break the live API."
-}
-$databaseAppPassword = Get-DatabaseAppPassword
+$databaseAppPassword = if ($containerAppExists) { '' } else { Get-DatabaseAppPassword }
 
 foreach ($provider in @('Microsoft.App', 'Microsoft.OperationalInsights', 'Microsoft.ContainerRegistry', 'Microsoft.DBforPostgreSQL', 'Microsoft.Web')) {
     $state = [string](Invoke-Az -Arguments @('provider', 'show', '--namespace', $provider, '--query', 'registrationState', '--output', 'tsv') -Failure "Could not check provider $provider.")
@@ -387,6 +388,7 @@ $null = Invoke-Az -Arguments @(
     '--template-file', $templatePath, '--parameters',
     "suffix=$Suffix", "location=$Location", "staticWebAppLocation=$StaticWebAppLocation",
     "githubServicePrincipalObjectId=$githubObjectId", "postgresAdminPassword=$postgresAdminPassword",
+    "deployContainerApp=$((!$containerAppExists).ToString().ToLowerInvariant())", "existingApiHostname=$existingApiHostname",
     '--output', 'none'
 ) -Failure 'Azure resource deployment failed.'
 $resourceGroupId = [string](Invoke-Az -Arguments @('group', 'show', '--name', $resourceGroupName, '--query', 'id', '--output', 'tsv') -Failure 'Could not read the deployed resource group ID.')
@@ -398,15 +400,19 @@ $outputs = Invoke-AzJson -Arguments @('deployment', 'sub', 'show', '--name', $de
 $websiteUrl = 'https://' + [string]$outputs.staticWebAppHostname.value
 $entraClientId = Ensure-EntraApplication -WebsiteUrl ($websiteUrl + '/')
 
-Write-Host 'Configuring the API...'
-$apiDeploymentName = "tss-api-$Suffix-$(Get-Date -Format 'yyyyMMddHHmmss')"
-$null = Invoke-Az -Arguments @(
-    'deployment', 'group', 'create', '--name', $apiDeploymentName, '--resource-group', $resourceGroupName,
-    '--template-file', $apiTemplatePath, '--parameters',
-    "suffix=$Suffix", "entraClientId=$entraClientId", "postgresAdminPassword=$postgresAdminPassword",
-    "databaseAppPassword=$databaseAppPassword", "useDedicatedDatabaseUser=$($useDedicatedDatabaseUser.ToString().ToLowerInvariant())",
-    "containerImage=$existingContainerImage", '--output', 'none'
-) -Failure 'API configuration deployment failed.'
+if ($containerAppExists) {
+    Write-Host 'Preserving the existing API configuration, image, and database secrets.'
+} else {
+    Write-Host 'Configuring the initial API...'
+    $apiDeploymentName = "tss-api-$Suffix-$(Get-Date -Format 'yyyyMMddHHmmss')"
+    $null = Invoke-Az -Arguments @(
+        'deployment', 'group', 'create', '--name', $apiDeploymentName, '--resource-group', $resourceGroupName,
+        '--template-file', $apiTemplatePath, '--parameters',
+        "suffix=$Suffix", "entraClientId=$entraClientId", "postgresAdminPassword=$postgresAdminPassword",
+        "databaseAppPassword=$databaseAppPassword", "useDedicatedDatabaseUser=false",
+        "containerImage=mcr.microsoft.com/k8se/quickstart:latest", '--output', 'none'
+    ) -Failure 'API configuration deployment failed.'
+}
 
 $apiUrl = 'https://' + [string]$outputs.apiHostname.value
 $staticWebAppName = [string]$outputs.staticWebAppName.value

@@ -49,21 +49,39 @@ jobs:
 
       - name: Roll out a new revision
         run: |
+          wait_for_api() {
+            local failure_message="$1"
+            local health_status="request failed"
+
+            for attempt in {1..30}; do
+              health_status=$(curl --silent --output /dev/null --write-out '%{http_code}' --connect-timeout 5 --max-time 10 "$API_URL/actuator/health" || true)
+              if [[ "$health_status" == "200" ]]; then
+                return 0
+              fi
+              if [[ "$attempt" == 30 ]]; then
+                echo "$failure_message Last health-check HTTP status: ${health_status:-request failed}."
+                az containerapp revision list \
+                  --name "${{ vars.ACA_APP_NAME }}" \
+                  --resource-group "${{ vars.AZURE_RESOURCE_GROUP }}" \
+                  --query "[?properties.active].{revision:name,state:properties.runningState,health:properties.healthState,replicas:properties.replicas}" \
+                  --output table
+                az containerapp logs show \
+                  --name "${{ vars.ACA_APP_NAME }}" \
+                  --resource-group "${{ vars.AZURE_RESOURCE_GROUP }}" \
+                  --type system \
+                  --tail 30 || true
+                return 1
+              fi
+              sleep 10
+            done
+          }
+
           az containerapp update \
             --name "${{ vars.ACA_APP_NAME }}" \
             --resource-group "${{ vars.AZURE_RESOURCE_GROUP }}" \
             --image "$IMAGE"
 
-          for attempt in {1..30}; do
-            if curl --fail --silent "$API_URL/actuator/health" >/dev/null; then
-              break
-            fi
-            if [[ "$attempt" == 30 ]]; then
-              echo "The API did not become healthy after the image update."
-              exit 1
-            fi
-            sleep 10
-          done
+          wait_for_api "The API did not become healthy after the image update." || exit 1
 
           DB_USER=$(az containerapp show \
             --name "${{ vars.ACA_APP_NAME }}" \
@@ -77,14 +95,5 @@ jobs:
               --resource-group "${{ vars.AZURE_RESOURCE_GROUP }}" \
               --set-env-vars DB_USER=tickets_app DB_PASSWORD=secretref:db-app-password
 
-            for attempt in {1..30}; do
-              if curl --fail --silent "$API_URL/actuator/health" >/dev/null; then
-                break
-              fi
-              if [[ "$attempt" == 30 ]]; then
-                echo "The API did not become healthy after switching to its application database login."
-                exit 1
-              fi
-              sleep 10
-            done
+            wait_for_api "The API did not become healthy after switching to its application database login." || exit 1
           fi

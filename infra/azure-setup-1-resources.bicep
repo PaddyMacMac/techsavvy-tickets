@@ -19,6 +19,12 @@ param postgresAdminPassword string
 @description('Optional object ID of an existing GitHub deployment service principal.')
 param githubServicePrincipalObjectId string = ''
 
+@description('Whether to create the initial API Container App.')
+param deployContainerApp bool = true
+
+@description('Hostname of the existing API Container App when it is preserved.')
+param existingApiHostname string = ''
+
 var normalizedSuffix = toLower(suffix)
 var acrName = 'tssacr${normalizedSuffix}'
 var postgresName = 'pg-tss-${normalizedSuffix}'
@@ -93,7 +99,7 @@ resource containerEnvironment 'Microsoft.App/managedEnvironments@2024-03-01' = {
   }
 }
 
-resource containerApp 'Microsoft.App/containerApps@2024-03-01' = {
+resource containerApp 'Microsoft.App/containerApps@2024-03-01' = if (deployContainerApp) {
   name: containerAppName
   location: location
   identity: { type: 'SystemAssigned' }
@@ -114,12 +120,12 @@ resource containerApp 'Microsoft.App/containerApps@2024-03-01' = {
   }
 }
 
-resource acrPullAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+resource acrPullAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = if (deployContainerApp) {
   scope: acr
   name: guid(acr.id, containerApp.id, acrPullRoleDefinitionId)
   properties: {
     roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', acrPullRoleDefinitionId)
-    principalId: containerApp.identity.principalId
+    principalId: containerApp!.identity.principalId
     principalType: 'ServicePrincipal'
   }
 }
@@ -141,7 +147,7 @@ resource githubAcrPushAssignment 'Microsoft.Authorization/roleAssignments@2022-0
   }
 }
 
-resource githubContainerAppAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = if (!empty(githubServicePrincipalObjectId)) {
+resource githubContainerAppAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = if (!empty(githubServicePrincipalObjectId) && deployContainerApp) {
   scope: containerApp
   name: guid(containerApp.id, githubServicePrincipalObjectId, containerAppsContributorRoleDefinitionId)
   properties: {
@@ -157,7 +163,7 @@ output acrLoginServer string = acr.properties.loginServer
 output postgresServerName string = pgServer.name
 output postgresHost string = pgServer.properties.fullyQualifiedDomainName
 output containerEnvironmentName string = containerEnvironment.name
-output containerAppName string = containerApp.name
-output apiHostname string = containerApp.properties.configuration.ingress.fqdn
+output containerAppName string = containerAppName
+output apiHostname string = deployContainerApp ? containerApp!.properties.configuration.ingress.fqdn : existingApiHostname
 output staticWebAppName string = staticWebApp.name
 output staticWebAppHostname string = staticWebApp.properties.defaultHostname
