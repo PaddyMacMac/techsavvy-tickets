@@ -390,7 +390,7 @@ $null = Invoke-Az -Arguments @(
     '--output', 'none'
 ) -Failure 'Azure resource deployment failed.'
 $resourceGroupId = [string](Invoke-Az -Arguments @('group', 'show', '--name', $resourceGroupName, '--query', 'id', '--output', 'tsv') -Failure 'Could not read the deployed resource group ID.')
-$legacyContributorAssignments = Invoke-AzJson -Arguments @('role', 'assignment', 'list', '--assignee', $githubObjectId, '--scope', $resourceGroupId, '--all', '--output', 'json') -Failure 'Could not check for the previous GitHub Contributor assignment.'
+$legacyContributorAssignments = Invoke-AzJson -Arguments @('role', 'assignment', 'list', '--assignee-object-id', $githubObjectId, '--all', '--output', 'json') -Failure 'Could not check for the previous GitHub Contributor assignment.'
 foreach ($assignment in @($legacyContributorAssignments | Where-Object { $_.roleDefinitionName -eq 'Contributor' -and $_.scope -eq $resourceGroupId })) {
     $null = Invoke-Az -Arguments @('role', 'assignment', 'delete', '--ids', $assignment.id, '--output', 'none') -Failure 'Could not remove the previous resource-group Contributor assignment.'
 }
