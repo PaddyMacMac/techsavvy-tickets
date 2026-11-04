@@ -1,4 +1,4 @@
-import type { TicketCategory, TicketPriority, TicketStatus } from '../../api/types'
+import type { TicketCategory, TicketPriority, TicketStatus } from './types'
 
 export const STATUS_LABELS: Record<TicketStatus, string> = {
   OPEN: 'Waiting for us',

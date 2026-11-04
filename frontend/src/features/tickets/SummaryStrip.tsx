@@ -1,4 +1,4 @@
-import { TICKET_STATUSES, type TicketSummary } from '../../api/types'
+import { TICKET_STATUSES, type TicketSummary } from './types'
 import { describeResponseDue } from './dueLabel'
 import { STATUS_LABELS } from './labels'
 

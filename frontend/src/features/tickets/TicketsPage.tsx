@@ -1,7 +1,7 @@
 import { useCallback, useState } from 'react'
-import { useApi } from '../../api/useApi'
-import { type Ticket, type TicketStatus } from '../../api/types'
-import { useAuth } from '../../auth/useAuth'
+import { useTicketApi } from './api/useTicketApi'
+import { type Ticket, type TicketStatus } from './types'
+import { useAuth } from '../identity/auth/useAuth'
 import { Button } from '../../components/Button'
 import { FeedbackMessage } from '../../components/FeedbackMessage'
 import { StatusFilter } from './StatusFilter'
@@ -12,7 +12,7 @@ import { useTicketBoard } from './useTicketBoard'
 
 export const TicketsPage = () => {
   const { user, signOut } = useAuth()
-  const api = useApi()
+  const api = useTicketApi()
   const [filter, setFilter] = useState<TicketStatus | undefined>(undefined)
   const [pageNumber, setPageNumber] = useState(0)
   const [actionError, setActionError] = useState<string | null>(null)

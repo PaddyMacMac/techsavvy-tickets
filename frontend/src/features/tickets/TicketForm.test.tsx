@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
-import type { Ticket } from '../../api/types'
+import type { Ticket } from './types'
 import { TicketForm } from './TicketForm'
 
 const loggedTicket = { id: '1', reference: 'TSS-001000' } as Ticket

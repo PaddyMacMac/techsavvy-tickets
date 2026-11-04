@@ -1,8 +1,8 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router'
-import { AuthProvider } from './auth/AuthContext'
-import { RequireAuth } from './auth/RequireAuth'
+import { AuthProvider } from './features/identity/auth/AuthContext'
+import { RequireAuth } from './features/identity/auth/RequireAuth'
 import { DemoPage } from './features/demo/DemoPage'
-import { LoginPage } from './features/login/LoginPage'
+import { LoginPage } from './features/identity/login/LoginPage'
 import { TicketsPage } from './features/tickets/TicketsPage'
 
 const AuthenticatedRoutes = () => (

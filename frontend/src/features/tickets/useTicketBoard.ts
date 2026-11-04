@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
-import type { TicketApi } from '../../api/ticketApi'
-import type { TicketPage, TicketStatus, TicketSummary } from '../../api/types'
+import type { TicketApi } from './api/ticketApi'
+import type { TicketPage, TicketStatus, TicketSummary } from './types'
 
 export type BoardState =
   | { phase: 'loading' }

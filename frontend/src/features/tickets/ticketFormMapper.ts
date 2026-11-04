@@ -1,4 +1,4 @@
-import type { LogTicketRequest, TicketCategory, TicketPriority } from '../../api/types'
+import type { LogTicketRequest, TicketCategory, TicketPriority } from './types'
 
 const text = (data: FormData, key: string): string => String(data.get(key) ?? '').trim()
 

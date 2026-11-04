@@ -1,4 +1,4 @@
-import { TICKET_STATUSES, type TicketStatus } from '../../api/types'
+import { TICKET_STATUSES, type TicketStatus } from './types'
 import { STATUS_LABELS } from './labels'
 
 interface StatusFilterProps {

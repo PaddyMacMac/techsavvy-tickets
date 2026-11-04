@@ -1,6 +1,7 @@
 import { useMemo, useState, type FormEvent } from 'react'
 import { Link } from 'react-router'
-import type { LogTicketRequest, Role, Ticket, TicketStatus } from '../../api/types'
+import type { Role } from '../identity/types'
+import type { LogTicketRequest, Ticket, TicketStatus } from '../tickets/types'
 import { Button } from '../../components/Button'
 import { FeedbackMessage } from '../../components/FeedbackMessage'
 import { TextField } from '../../components/Field'

@@ -12,7 +12,7 @@ services:
       - "5432:5432"
     volumes:
       - tickets-db:/var/lib/postgresql/data
-      - ./dbscripts/seed:/seed:ro
+      - ./dbscripts/dev-seed.sql:/dev-seed.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U tickets -d tickets"]
       interval: 5s

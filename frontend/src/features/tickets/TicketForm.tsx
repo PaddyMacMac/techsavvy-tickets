@@ -1,6 +1,6 @@
 import { useActionState } from 'react'
 import { ApiError } from '../../api/httpClient'
-import { TICKET_CATEGORIES, TICKET_PRIORITIES, type LogTicketRequest, type Ticket } from '../../api/types'
+import { TICKET_CATEGORIES, TICKET_PRIORITIES, type LogTicketRequest, type Ticket } from './types'
 import { Button } from '../../components/Button'
 import { FeedbackMessage } from '../../components/FeedbackMessage'
 import { SelectField, TextAreaField, TextField } from '../../components/Field'

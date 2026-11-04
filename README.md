@@ -11,7 +11,7 @@ A job-request ticketing app for Tech Savvy Solutions Ltd. Clients can submit req
 
 ## Technology
 
-- **Backend:** Java 25, Spring Boot 4, Spring Security, PostgreSQL, Flyway
+- **Backend:** Java 25, Spring Boot 4, Spring Modulith (Identity, Ticket, Shared, and Web modules), Spring Security, PostgreSQL, Flyway
 - **Frontend:** React 19, TypeScript, Vite, Tailwind CSS
 - **Hosting:** Azure Container Apps (API) and Azure Static Web Apps (frontend)
 

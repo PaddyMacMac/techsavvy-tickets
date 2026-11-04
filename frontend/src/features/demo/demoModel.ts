@@ -1,4 +1,4 @@
-import { TICKET_STATUSES, type Ticket, type TicketStatus, type TicketSummary } from '../../api/types'
+import { TICKET_STATUSES, type Ticket, type TicketStatus, type TicketSummary } from '../tickets/types'
 
 export const CLIENT_EMAIL = 'client@acme.local'
 

@@ -1,5 +1,5 @@
-import type { Ticket, TicketStatus } from '../../api/types'
-import { StatusBadge } from '../../components/StatusBadge'
+import type { Ticket, TicketStatus } from './types'
+import { StatusBadge } from './StatusBadge'
 import { describeResponseDue } from './dueLabel'
 import { CATEGORY_LABELS, PRIORITY_LABELS, STATUS_LABELS } from './labels'
 
