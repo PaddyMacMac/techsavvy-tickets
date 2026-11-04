@@ -36,7 +36,7 @@ The Static Web App hostname can change if the resource is deleted and recreated.
 
 ## Azure deployment
 
-The Azure website address is generated when the resources are provisioned. The launcher prints the address; see the [deployment guide](docs/DEPLOYMENT-GUIDE.md) for the one-run setup and post-deployment checks. The public demo link is in the [Live demo](#live-demo) section; the full application at the site root remains Entra-protected.
+The Azure website address is generated when the resources are provisioned. The launcher prints the address; see the [deployment guide](docs/DEPLOYMENT-GUIDE.md) for prerequisites, what the launcher changes, verification, and troubleshooting. The public demo link is in the [Live demo](#live-demo) section; the full application at the site root remains Entra-protected.
 
 ## Run locally
 
@@ -75,7 +75,7 @@ These accounts authenticate against the local development backend. The same emai
 Run from the project root:
 
 ```powershell
-mvn -B verify
+mvn -B -pl backend verify
 ```
 
 Run frontend checks from `frontend`:
@@ -91,6 +91,6 @@ The backend integration tests use Testcontainers and require Docker to be runnin
 
 ## Deployment
 
-With the project and workflow files pushed to the repository's `main` branch, run `.\infra\azure-run-bicep.cmd` from IntelliJ's PowerShell terminal at the project root. One run provisions or reconciles Azure, configures Entra and GitHub Actions, and queues both deployments. It installs Azure CLI and GitHub CLI with `winget` if needed; browser sign-in may be required the first time. The launcher prints the website and API addresses. See the [deployment guide](docs/DEPLOYMENT-GUIDE.md) for verification and troubleshooting.
+After pushing the project and workflow files to `main`, run `.\infra\azure-run-bicep.cmd` from IntelliJ's PowerShell terminal at the project root. It provisions or reconciles the configured Azure resources, configures Entra and GitHub Actions, and queues both deployments. It installs Azure CLI and GitHub CLI with `winget` if needed; browser sign-in may be required the first time. The launcher prints the website and API addresses. It targets this project's configured live Azure subscription and resource group; it is not a staging-only test command. Keep the same Windows account and PC so it can access the locally encrypted database passwords. Read the [deployment guide](docs/DEPLOYMENT-GUIDE.md) before running it.
 
 To remove the Azure resource group, run `.\infra\azure-run-bicep.cmd -Cleanup` and confirm the prompt. This does not delete the Entra app registrations or GitHub repository settings.
