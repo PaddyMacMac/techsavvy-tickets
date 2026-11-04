@@ -56,6 +56,16 @@ To give another person access later, use Microsoft Entra ID → **Enterprise app
 - View API logs in Azure Portal → the resource group → `tickets-api` → **Monitoring → Log stream**.
 - Add database changes as new Flyway migrations in `backend/src/main/resources/db/migration`. Do not edit migrations that have already run.
 
+## Reset live database and load sample tickets
+
+To replace all live tickets, companies, and requesters with the sample records, start Docker Desktop and sign in to Azure CLI as the Entra user who should own the tickets. From the repository root, run:
+
+```powershell
+.\dbscripts\azure-reset-and-seed.cmd
+```
+
+The script uses the encrypted application database password stored for the Windows user who ran the Azure setup, temporarily allows that computer's current public IP through the PostgreSQL firewall, and removes the firewall rule afterward. It asks for the exact confirmation `RESET tickets` before changing anything. This permanently deletes existing live ticket data; back up the database first if you may need it.
+
 ## CORS and deployment errors
 
 | Symptom | What to check |

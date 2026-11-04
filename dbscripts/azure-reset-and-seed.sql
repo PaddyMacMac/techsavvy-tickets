@@ -1,6 +1,5 @@
 -- DESTRUCTIVE: deletes all live tickets, requesters, and companies before seeding sample records.
--- Replace __ENTRA_SUBJECT_OID__ with the subject/oid of the Entra user who should own these tickets.
--- Run only against the intended Azure database, after taking or confirming a backup.
+-- Run through azure-reset-and-seed.cmd; it fills in the signed-in Entra user's details.
 
 begin;
 
@@ -12,7 +11,7 @@ values (gen_random_uuid(), 'Acme Bury Ltd'),
        (gen_random_uuid(), 'Lancashire Joinery');
 
 insert into public.requesters (subject, name, email)
-values ('__ENTRA_SUBJECT_OID__', 'Paddy Azureman', 'paddazureman@gmail.com');
+values ('__ENTRA_SUBJECT_OID__', '__ENTRA_DISPLAY_NAME__', '__ENTRA_EMAIL__');
 
 insert into public.tickets (
     id, reference, title, description, category, priority, status, company_id,
