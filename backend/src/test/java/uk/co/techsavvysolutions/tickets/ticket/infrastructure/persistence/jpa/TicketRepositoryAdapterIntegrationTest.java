@@ -17,13 +17,14 @@ import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
+import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.transaction.annotation.Transactional;
 import org.testcontainers.postgresql.PostgreSQLContainer;
 
 /** Needs Docker running. Starts a throwaway PostgreSQL, runs the real Flyway scripts, then checks the mapping. */
-@SpringBootTest
+@SpringBootTest(properties = "spring.flyway.placeholders.ticketsAppPassword=test-app-only")
 @Transactional
 @Import(TicketRepositoryAdapterIntegrationTest.Postgres.class)
 class TicketRepositoryAdapterIntegrationTest {
@@ -40,6 +41,7 @@ class TicketRepositoryAdapterIntegrationTest {
     @Autowired TicketRepository tickets;
     @Autowired SpringDataCompanyRepository companies;
     @Autowired SpringDataRequesterRepository requesters;
+    @Autowired JdbcClient jdbc;
     @MockitoBean JwtDecoder jwtDecoder;
 
     @Test
@@ -68,6 +70,37 @@ class TicketRepositoryAdapterIntegrationTest {
                 .orElseThrow();
         assertThat(savedStatusChange.getRequesterName()).isEqualTo("Updated Client");
     }
+
+    @Test
+    void flywayCreatesALimitedApplicationRoleThatOwnsItsTables() {
+        var role = jdbc.sql("""
+                        select rolsuper, rolcreaterole, rolcanlogin
+                        from pg_roles
+                        where rolname = 'tickets_app'
+                        """)
+                .query((rs, row) -> new DatabaseRole(rs.getBoolean("rolsuper"), rs.getBoolean("rolcreaterole"), rs.getBoolean("rolcanlogin")))
+                .single();
+        var tableOwner = jdbc.sql("select pg_get_userbyid(relowner) from pg_class where oid = 'tickets'::regclass")
+                .query(String.class)
+                .single();
+        var canUpdateFlywayHistory = jdbc.sql("""
+                        select has_table_privilege(
+                            'tickets_app',
+                            'public.flyway_schema_history',
+                            'select, insert, update, delete'
+                        )
+                        """)
+                .query(Boolean.class)
+                .single();
+
+        assertThat(role.superuser()).isFalse();
+        assertThat(role.canCreateRoles()).isFalse();
+        assertThat(role.canLogin()).isTrue();
+        assertThat(tableOwner).isEqualTo("tickets_app");
+        assertThat(canUpdateFlywayHistory).isTrue();
+    }
+
+    private record DatabaseRole(boolean superuser, boolean canCreateRoles, boolean canLogin) {}
 
     @Test
     void clientsOnlySeeTheirOwnTickets() {

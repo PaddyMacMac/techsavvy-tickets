@@ -19,6 +19,7 @@ $entraAppName = 'Tech Savvy Tickets'
 $quickstartImage = 'mcr.microsoft.com/k8se/quickstart:latest'
 $secretStateDirectory = Join-Path $env:LOCALAPPDATA 'TechSavvyTickets'
 $secretStatePath = Join-Path $secretStateDirectory "postgres-$Suffix.secure"
+$appSecretStatePath = Join-Path $secretStateDirectory "postgres-app-$Suffix.secure"
 
 function Invoke-Az {
     param([string[]]$Arguments, [string]$Failure)
@@ -172,6 +173,23 @@ function Get-DatabasePassword {
         ConvertFrom-SecureString -SecureString $secure | Set-Content -LiteralPath $secretStatePath -NoNewline
     }
     $securePassword = Get-Content -LiteralPath $secretStatePath -Raw | ConvertTo-SecureString
+    $pointer = [Runtime.InteropServices.Marshal]::SecureStringToBSTR($securePassword)
+    try { return [Runtime.InteropServices.Marshal]::PtrToStringBSTR($pointer) }
+    finally { [Runtime.InteropServices.Marshal]::ZeroFreeBSTR($pointer) }
+}
+
+function Get-DatabaseAppPassword {
+    if (-not (Test-Path -LiteralPath $appSecretStatePath)) {
+        New-Item -ItemType Directory -Path $secretStateDirectory -Force | Out-Null
+        $bytes = New-Object byte[] 36
+        $random = [System.Security.Cryptography.RandomNumberGenerator]::Create()
+        try { $random.GetBytes($bytes) } finally { $random.Dispose() }
+        $hex = ($bytes | ForEach-Object { $_.ToString('x2') }) -join ''
+        $password = 'TssApp!' + $hex + 'a1'
+        $secure = ConvertTo-SecureString -String $password -AsPlainText -Force
+        ConvertFrom-SecureString -SecureString $secure | Set-Content -LiteralPath $appSecretStatePath -NoNewline
+    }
+    $securePassword = Get-Content -LiteralPath $appSecretStatePath -Raw | ConvertTo-SecureString
     $pointer = [Runtime.InteropServices.Marshal]::SecureStringToBSTR($securePassword)
     try { return [Runtime.InteropServices.Marshal]::PtrToStringBSTR($pointer) }
     finally { [Runtime.InteropServices.Marshal]::ZeroFreeBSTR($pointer) }
@@ -336,11 +354,18 @@ if ($null -eq $federatedCredential) {
 $entraClientId = Ensure-EntraApplication -WebsiteUrl ''
 $postgresAdminPassword = Get-DatabasePassword
 $existingContainerImage = $quickstartImage
+$useDedicatedDatabaseUser = $false
 $rgExists = [string](Invoke-Az -Arguments @('group', 'exists', '--name', $resourceGroupName, '--output', 'tsv') -Failure 'Could not check the Azure resource group.')
 if ($rgExists -eq 'true') {
     $imageResult = & az containerapp show --name tickets-api --resource-group $resourceGroupName --query 'properties.template.containers[0].image' --output tsv 2>$null
     if ($LASTEXITCODE -eq 0 -and -not [string]::IsNullOrWhiteSpace([string]$imageResult)) { $existingContainerImage = [string]$imageResult }
+    $databaseUserResult = & az containerapp show --name tickets-api --resource-group $resourceGroupName --query "properties.template.containers[0].env[?name=='DB_USER'].value | [0]" --output tsv 2>$null
+    if ($LASTEXITCODE -eq 0 -and [string]$databaseUserResult -eq 'tickets_app') { $useDedicatedDatabaseUser = $true }
 }
+if ($useDedicatedDatabaseUser -and -not (Test-Path -LiteralPath $appSecretStatePath)) {
+    throw "The encrypted application database password is missing at $appSecretStatePath. Restore the original Windows user state before reconciling this deployment; generating a new password here would break the live API."
+}
+$databaseAppPassword = Get-DatabaseAppPassword
 
 foreach ($provider in @('Microsoft.App', 'Microsoft.OperationalInsights', 'Microsoft.ContainerRegistry', 'Microsoft.DBforPostgreSQL', 'Microsoft.Web')) {
     $state = [string](Invoke-Az -Arguments @('provider', 'show', '--namespace', $provider, '--query', 'registrationState', '--output', 'tsv') -Failure "Could not check provider $provider.")
@@ -364,6 +389,11 @@ $null = Invoke-Az -Arguments @(
     "githubServicePrincipalObjectId=$githubObjectId", "postgresAdminPassword=$postgresAdminPassword",
     '--output', 'none'
 ) -Failure 'Azure resource deployment failed.'
+$resourceGroupId = [string](Invoke-Az -Arguments @('group', 'show', '--name', $resourceGroupName, '--query', 'id', '--output', 'tsv') -Failure 'Could not read the deployed resource group ID.')
+$legacyContributorAssignments = Invoke-AzJson -Arguments @('role', 'assignment', 'list', '--assignee', $githubObjectId, '--scope', $resourceGroupId, '--all', '--output', 'json') -Failure 'Could not check for the previous GitHub Contributor assignment.'
+foreach ($assignment in @($legacyContributorAssignments | Where-Object { $_.roleDefinitionName -eq 'Contributor' -and $_.scope -eq $resourceGroupId })) {
+    $null = Invoke-Az -Arguments @('role', 'assignment', 'delete', '--ids', $assignment.id, '--output', 'none') -Failure 'Could not remove the previous resource-group Contributor assignment.'
+}
 $outputs = Invoke-AzJson -Arguments @('deployment', 'sub', 'show', '--name', $deploymentName, '--query', 'properties.outputs', '--output', 'json') -Failure 'Could not read Bicep deployment outputs.'
 $websiteUrl = 'https://' + [string]$outputs.staticWebAppHostname.value
 $entraClientId = Ensure-EntraApplication -WebsiteUrl ($websiteUrl + '/')
@@ -374,6 +404,7 @@ $null = Invoke-Az -Arguments @(
     'deployment', 'group', 'create', '--name', $apiDeploymentName, '--resource-group', $resourceGroupName,
     '--template-file', $apiTemplatePath, '--parameters',
     "suffix=$Suffix", "entraClientId=$entraClientId", "postgresAdminPassword=$postgresAdminPassword",
+    "databaseAppPassword=$databaseAppPassword", "useDedicatedDatabaseUser=$($useDedicatedDatabaseUser.ToString().ToLowerInvariant())",
     "containerImage=$existingContainerImage", '--output', 'none'
 ) -Failure 'API configuration deployment failed.'
 
@@ -414,5 +445,5 @@ Write-Host "Website: $websiteUrl"
 Write-Host "API: $apiUrl"
 Write-Host "Entra app: $entraAppName ($entraClientId)"
 Write-Host "GitHub Actions secrets and variables are configured for $githubRepository."
-Write-Host 'The PostgreSQL password is stored encrypted for this Windows user under LocalAppData; it is not written to the repository.'
+Write-Host 'The PostgreSQL administrator and application passwords are stored encrypted for this Windows user under LocalAppData; neither is written to the repository.'
 Write-Host 'Both GitHub deployment workflows have been queued against main.'

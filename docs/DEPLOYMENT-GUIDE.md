@@ -11,7 +11,7 @@ Azure provisioning and deployment use one entry point: `infra/azure-run-bicep.cm
 
 The first push to `main` can start GitHub Actions before Azure and repository settings are configured. If an initial deploy run fails, run the launcher below; it configures those settings and queues new deploy runs.
 
-The launcher is configured for this project (`pmc01`, UK South, Static Web Apps East US 2, and the tenant/subscription IDs in the script). It generates a PostgreSQL admin password and stores it encrypted for the current Windows user.
+The launcher is configured for this project (`pmc01`, UK South, Static Web Apps East US 2, and the tenant/subscription IDs in the script). It generates separate PostgreSQL administrator and application passwords and stores them encrypted for the current Windows user.
 
 ## Provision or reconcile Azure
 
@@ -21,9 +21,11 @@ From the project root in IntelliJ's PowerShell terminal, run:
 .\infra\azure-run-bicep.cmd
 ```
 
-The launcher provisions or updates the resource group and its resources, configures the `Tech Savvy Tickets` Entra app and user role, creates or repairs GitHub's Azure workload identity trust, writes the required Actions secrets and variables, then queues the API and website workflows. You do not need to create the Entra app in the portal, copy secrets or variables by hand, or manually start the workflows.
+The launcher provisions or updates the resource group and its resources, configures the `Tech Savvy Tickets` Entra app and user role, creates or repairs GitHub's Azure workload identity trust, writes the required Actions secrets and variables, then queues the API and website workflows. The API initially connects with the PostgreSQL administrator so Flyway can create a dedicated `tickets_app` login and transfer the application tables to it. Once the API is healthy, its deployment workflow switches the running app to that restricted login. Later deployments keep using the application login.
 
-Rerunning the launcher reconciles resources in place; it does not tear down the resource group. The same Windows account reuses its encrypted database password. A different Windows account or PC generates a new password and updates the server and API configuration without deleting database data.
+Rerunning the launcher reconciles resources in place; it does not tear down the resource group. The PostgreSQL administrator and application passwords are encrypted for the Windows user with Windows DPAPI. Run the launcher from the same Windows account and PC so it can reuse both. If the encrypted application password is missing, the launcher stops rather than replacing it and breaking the live API; restore the original user state before reconciling.
+
+The GitHub deployment identity has `AcrPush` on the container registry and `Container Apps Contributor` only on the API Container App. The launcher removes its previous resource-group `Contributor` assignment after the narrower assignments are deployed.
 
 **Setup complete means the workflows were queued, not that the deployments passed.** Check both runs under GitHub → **Actions** and wait for green checks before testing the site.
 

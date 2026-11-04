@@ -27,7 +27,7 @@ var containerAppName = 'tickets-api'
 var staticWebAppName = 'swa-tss-${normalizedSuffix}'
 var logWorkspaceName = 'law-tss-${normalizedSuffix}'
 var acrPullRoleDefinitionId = '7f951dda-4ed3-4680-a7ca-43fe172d538d'
-var contributorRoleDefinitionId = 'b24988ac-6180-42a0-ab88-20f7382dd24c'
+var containerAppsContributorRoleDefinitionId = '358470bc-b998-42bd-ab17-a7e34c199c0f'
 var acrPushRoleDefinitionId = '8311e382-0749-4cb8-b61a-304f252e45ec'
 
 resource acr 'Microsoft.ContainerRegistry/registries@2023-07-01' = {
@@ -131,21 +131,21 @@ resource staticWebApp 'Microsoft.Web/staticSites@2025-03-01' = {
   properties: {}
 }
 
-resource githubContributorAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = if (!empty(githubServicePrincipalObjectId)) {
-  scope: resourceGroup()
-  name: guid(resourceGroup().id, githubServicePrincipalObjectId, contributorRoleDefinitionId)
-  properties: {
-    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', contributorRoleDefinitionId)
-    principalId: githubServicePrincipalObjectId
-    principalType: 'ServicePrincipal'
-  }
-}
-
 resource githubAcrPushAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = if (!empty(githubServicePrincipalObjectId)) {
   scope: acr
   name: guid(acr.id, githubServicePrincipalObjectId, acrPushRoleDefinitionId)
   properties: {
     roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', acrPushRoleDefinitionId)
+    principalId: githubServicePrincipalObjectId
+    principalType: 'ServicePrincipal'
+  }
+}
+
+resource githubContainerAppAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = if (!empty(githubServicePrincipalObjectId)) {
+  scope: containerApp
+  name: guid(containerApp.id, githubServicePrincipalObjectId, containerAppsContributorRoleDefinitionId)
+  properties: {
+    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', containerAppsContributorRoleDefinitionId)
     principalId: githubServicePrincipalObjectId
     principalType: 'ServicePrincipal'
   }

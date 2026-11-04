@@ -1,5 +1,8 @@
 # Every value comes from environment variables set on the Azure Container App (see docs/DEPLOYMENT-GUIDE.md).
 spring:
+  flyway:
+    placeholders:
+      ticketsAppPassword: ${DB_APP_PASSWORD}
   datasource:
     url: ${DB_URL}
     username: ${DB_USER}

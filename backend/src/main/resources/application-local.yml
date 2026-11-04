@@ -1,4 +1,7 @@
 spring:
+  flyway:
+    placeholders:
+      ticketsAppPassword: tickets-app-local-only
   datasource:
     url: jdbc:postgresql://localhost:5432/tickets
     username: tickets

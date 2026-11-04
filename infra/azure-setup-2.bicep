@@ -15,8 +15,15 @@ param entraClientId string
 @description('The PostgreSQL administrator password used by the API.')
 param postgresAdminPassword string
 
+@secure()
+@description('Password for the least-privilege tickets_app database login.')
+param databaseAppPassword string
+
+@description('Set after the database role has been bootstrapped by Flyway.')
+param useDedicatedDatabaseUser bool = false
+
 @description('Current image for tickets-api. Supply the intended image when reapplying after a GitHub deployment.')
-param containerImage string = 'mcr.microsoft.com/k8se/quickstart:latest'
+param containerImage string
 
 var normalizedSuffix = toLower(suffix)
 var postgresName = 'pg-tss-${normalizedSuffix}'
@@ -47,7 +54,10 @@ resource containerApp 'Microsoft.App/containerApps@2024-03-01' = {
       activeRevisionsMode: 'Single'
       ingress: { external: true, targetPort: 8080, transport: 'auto' }
       registries: [{ server: acr.properties.loginServer, identity: 'system' }]
-      secrets: [{ name: 'db-password', value: postgresAdminPassword }]
+      secrets: [
+        { name: 'db-password', value: useDedicatedDatabaseUser ? databaseAppPassword : postgresAdminPassword }
+        { name: 'db-app-password', value: databaseAppPassword }
+      ]
     }
     template: {
       containers: [{
@@ -57,8 +67,9 @@ resource containerApp 'Microsoft.App/containerApps@2024-03-01' = {
         env: [
           { name: 'SPRING_PROFILES_ACTIVE', value: 'azure' }
           { name: 'DB_URL', value: 'jdbc:postgresql://${postgres.properties.fullyQualifiedDomainName}:5432/tickets?sslmode=require' }
-          { name: 'DB_USER', value: 'tickets' }
+          { name: 'DB_USER', value: useDedicatedDatabaseUser ? 'tickets_app' : 'tickets' }
           { name: 'DB_PASSWORD', secretRef: 'db-password' }
+          { name: 'DB_APP_PASSWORD', secretRef: 'db-app-password' }
           { name: 'ENTRA_TENANT_ID', value: tenant().tenantId }
           { name: 'ENTRA_CLIENT_ID', value: entraClientId }
           { name: 'CORS_ALLOWED_ORIGINS', value: 'https://${staticWebApp.properties.defaultHostname}' }
