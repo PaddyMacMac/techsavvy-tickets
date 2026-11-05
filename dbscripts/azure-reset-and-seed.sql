@@ -1,5 +1,5 @@
 -- DESTRUCTIVE: deletes all live tickets, requesters, and companies before seeding sample records.
--- Run through azure-reset-and-seed.cmd; it fills in the signed-in Entra user's details.
+-- Run this whole file in IntelliJ with the Azure `tickets` database connection selected.
 
 begin;
 
@@ -11,7 +11,7 @@ values (gen_random_uuid(), 'Acme Bury Ltd'),
        (gen_random_uuid(), 'Lancashire Joinery');
 
 insert into public.requesters (subject, name, email)
-values ('__ENTRA_SUBJECT_OID__', '__ENTRA_DISPLAY_NAME__', '__ENTRA_EMAIL__');
+values ('8cad4976-5571-492e-9df0-be32a5f475a2', 'Paddy Azureman', 'paddyazureman@gmail.com');
 
 insert into public.tickets (
     id, reference, title, description, category, priority, status, company_id,

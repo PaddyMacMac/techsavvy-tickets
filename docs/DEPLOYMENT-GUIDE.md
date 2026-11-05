@@ -58,13 +58,9 @@ To give another person access later, use Microsoft Entra ID → **Enterprise app
 
 ## Reset live database and load sample tickets
 
-To replace all live tickets, companies, and requesters with the sample records, start Docker Desktop and sign in to Azure CLI as the Entra user who should own the tickets. From the repository root, run:
+To replace all live tickets, companies, and requesters with the sample records, open `dbscripts/azure-reset-and-seed.sql` in IntelliJ, select the Azure `tickets` database connection, and execute the whole file. The script assigns the sample tickets to the Entra user ID, name, and email currently in its requester insert; update those values if a different account should own the tickets. Ensure your current public IP is temporarily allowed in the PostgreSQL firewall before connecting.
 
-```powershell
-.\dbscripts\azure-reset-and-seed.cmd
-```
-
-The script uses the encrypted application database password stored for the Windows user who ran the Azure setup, temporarily allows that computer's current public IP through the PostgreSQL firewall, and removes the firewall rule afterward. It asks for the exact confirmation `RESET tickets` before changing anything. This permanently deletes existing live ticket data; back up the database first if you may need it.
+This permanently deletes existing live ticket data; back up the database first if you may need it. Remove the temporary firewall rule after the database operation.
 
 ## CORS and deployment errors
 
