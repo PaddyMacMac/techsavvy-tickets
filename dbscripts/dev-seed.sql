@@ -27,7 +27,7 @@ select gen_random_uuid(),
        now() - t.age,
        now() - t.age,
        0
-from (values ('New starter laptop for Alex',
+from (values ('New starter laptop for Casey',
               'Alex starts Monday. Needs a laptop with Microsoft 365 and the accounts package.',
               'NEW_STARTER', 'HIGH', 'OPEN', 'Acme Bury Ltd', 'client@acme.local', current_date + 5, interval '2 hours',
               interval '1 hour'),

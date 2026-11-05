@@ -38,6 +38,8 @@ The Static Web App hostname can change if the resource is deleted and recreated.
 
 The Azure website address is generated when the resources are provisioned. The launcher prints the address; see the [deployment guide](docs/DEPLOYMENT-GUIDE.md) for prerequisites, what the launcher changes, verification, and troubleshooting. The public demo link is in the [Live demo](#live-demo) section; the full application at the site root remains Entra-protected.
 
+To reset the live Azure database back to a known sample state, run the script in `dbscripts/azure-reset-and-seed.sql` in IntelliJ with the Azure `tickets` database connection selected. It truncates the live ticket, requester, and company tables and reseeds sample data. Use it only on the Azure database, and update the requester identity values in the script if a different Entra account should own the seeded tickets.
+
 ## Run locally
 
 Install JDK 25, Node.js 22, and Docker Desktop, and make Maven available on `PATH` (or use IntelliJ's Maven tool window to run Maven goals). From the project root, start the database:

@@ -11,3 +11,7 @@ docker compose exec db psql -U tickets -d tickets -f /dev-seed.sql
 ```
 
 The public `/demo` portfolio page uses separate fictional tickets held in browser memory. It does not read this seed file or write to the Azure database.
+
+## Reset the Azure database to a known sample state
+
+For the Azure-hosted `tickets` database, run the full `azure-reset-and-seed.sql` script in IntelliJ with the Azure database connection selected. It truncates the live `tickets`, `requesters`, and `companies` tables and reseeds them with sample records. Use it only on the Azure database. If a different Entra account should own the seeded tickets, update the `requesters` insert in the script before executing it.
